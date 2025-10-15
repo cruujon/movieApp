@@ -2,7 +2,7 @@
 import type { Movie, MovieList, MovieDetail, WatchProviders } from '@/types'
 
 /** TMDB APIプロキシ経由でデータを取得 */
-export async function tmdb<T>(path: string, qs: Record<string, string | number> = {}): Promise<T> {
+export async function tmdb<T>(path: string, qs: Record<string, string | number | boolean> = {}): Promise<T> {
   const queryString = new URLSearchParams(qs as Record<string, string>).toString()
   const url = `/api/tmdb?path=${encodeURIComponent(path)}&qs=${queryString}`
   

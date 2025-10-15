@@ -1,12 +1,9 @@
 import type { Movie, MovieList, MovieDetail, WatchProviders } from '@/types'
 
 /** クライアントサイド用TMDB API関数 */
-export async function tmdbClient<T>(path: string, qs: Record<string, string | number> = {}): Promise<T> {
+export async function tmdbClient<T>(path: string, qs: Record<string, string | number | boolean> = {}): Promise<T> {
   const queryString = new URLSearchParams(qs as Record<string, string>).toString()
   const url = `/api/tmdb?path=${encodeURIComponent(path)}&qs=${queryString}`
-  
-  console.log('tmdbClient URL:', url);
-  console.log('tmdbClient query params:', qs);
   
   const res = await fetch(url, { 
     cache: 'no-store',
@@ -20,7 +17,6 @@ export async function tmdbClient<T>(path: string, qs: Record<string, string | nu
   }
   
   const data = await res.json() as T;
-  console.log('tmdbClient response:', data);
   return data;
 }
 
@@ -31,14 +27,12 @@ export async function fetchPopularMoviesClient(lang = "ja-JP", page = 1): Promis
 
 /** 映画を検索（クライアント用） */
 export async function searchMoviesClient(query: string, lang = "ja-JP", page = 1): Promise<MovieList> {
-  console.log('searchMoviesClient called with:', { query, lang, page });
   const result = await tmdbClient<MovieList>('/search/movie', { 
     query, 
     language: lang, 
     page,
     include_adult: false 
   });
-  console.log('searchMoviesClient result:', result);
   return result;
 }
 
