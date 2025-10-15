@@ -1,6 +1,7 @@
 'use client';
 
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
+import { useMemo, useState, useCallback } from "react"
 import MovieCard from "@/components/MovieCard"
 import SkeletonCard from "@/components/SkeletonCard"
 import ErrorBlock from "@/components/ErrorBlock"
@@ -52,6 +53,30 @@ export default function HomePage() {
     retry 
   } = useInfiniteScroll();
 
+  // ページ内検索用の入力と候補
+  const [query, setQuery] = useState("")
+
+  const normalized = useCallback((v: string) => v.toLowerCase().trim(), [])
+
+  const suggestions = useMemo(() => {
+    if (!query.trim()) return [] as { id: number; title: string }[]
+    const q = normalized(query)
+    // 前方一致の候補を最大8件
+    return movies
+      .filter(m => normalized(m.title).startsWith(q))
+      .slice(0, 8)
+      .map(m => ({ id: m.id, title: m.title }))
+  }, [movies, query, normalized])
+
+  const filteredMovies = useMemo(() => {
+    const q = normalized(query)
+    if (!q) return movies
+    // 前方一致を優先しつつ、含むものも表示（前方一致→部分一致の順）
+    const starts = movies.filter(m => normalized(m.title).startsWith(q))
+    const contains = movies.filter(m => !normalized(m.title).startsWith(q) && normalized(m.title).includes(q))
+    return [...starts, ...contains]
+  }, [movies, query, normalized])
+
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50">
@@ -97,14 +122,40 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             人気の映画
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             次に観る映画をサクッと見つけよう
           </p>
+          {/* ページ内検索 */}
+          <div className="relative w-full max-w-xl">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="このページ内の作品を検索（タイトルで前方一致サジェスト）"
+              className="w-full pl-4 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="ページ内検索"
+            />
+            {query.trim() && suggestions.length > 0 && (
+              <ul className="absolute z-10 mt-2 w-full max-h-64 overflow-auto bg-white border border-gray-200 rounded-lg shadow">
+                {suggestions.map(s => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50"
+                      onClick={() => setQuery(s.title)}
+                    >
+                      {s.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
 
         {/* 映画グリッド */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {movies.map((movie) => (
+          {(filteredMovies).map((movie) => (
             <MovieCard 
               key={movie.id} 
               movie={movie} 
