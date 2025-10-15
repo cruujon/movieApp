@@ -40,12 +40,6 @@ export default function Header() {
               ホーム
             </Link>
             <Link 
-              href="/search" 
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              検索
-            </Link>
-            <Link 
               href="/watch-later" 
               className="relative text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
             >

@@ -131,9 +131,9 @@ export default function HomePage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="このページ内の作品を検索（タイトルで前方一致サジェスト）"
+              placeholder="映画タイトルで検索（リアルタイムサジェスト）"
               className="w-full pl-4 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              aria-label="ページ内検索"
+              aria-label="映画検索"
             />
             {query.trim() && suggestions.length > 0 && (
               <ul className="absolute z-10 mt-2 w-full max-h-64 overflow-auto bg-white border border-gray-200 rounded-lg shadow">
@@ -150,27 +150,57 @@ export default function HomePage() {
                 ))}
               </ul>
             )}
+            {query.trim() && suggestions.length === 0 && (
+              <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow p-4">
+                <p className="text-gray-500 text-sm">
+                  「{query}」に一致する映画が見つかりませんでした
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* 検索結果の表示 */}
+        {query.trim() && (
+          <div className="mb-6">
+            <p className="text-lg text-gray-700">
+              「{query}」の検索結果: {filteredMovies.length}件
+            </p>
+          </div>
+        )}
+
         {/* 映画グリッド */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {(filteredMovies).map((movie) => (
-            <MovieCard 
-              key={movie.id} 
-              movie={movie} 
-              critic={getCriticQuote(movie.title)}
-            />
-          ))}
-        </div>
+        {filteredMovies.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredMovies.map((movie) => (
+              <MovieCard 
+                key={movie.id} 
+                movie={movie} 
+                critic={getCriticQuote(movie.title)}
+              />
+            ))}
+          </div>
+        ) : query.trim() ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600 mb-4">
+              「{query}」に一致する映画が見つかりませんでした
+            </p>
+            <button
+              onClick={() => setQuery('')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              検索をクリア
+            </button>
+          </div>
+        ) : null}
 
         {/* 追加読み込みインジケーター */}
-        {isLoadingMore && (
+        {!query.trim() && isLoadingMore && (
           <LoadingIndicator text="さらに読み込み中..." />
         )}
 
         {/* 終了メッセージ */}
-        {!hasMore && movies.length > 0 && (
+        {!query.trim() && !hasMore && movies.length > 0 && (
           <div className="text-center py-8">
             <p className="text-gray-500">
               すべての映画を表示しました
